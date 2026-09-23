@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shadow of the Past · Judy Alqabbani</title>
+  <meta name="description" content="A narrative-driven, single-player Unity game where the story is revealed through exploration and the environment.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,700..900&family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="logo" href="../index.html">Judy Alqabbani<span>.</span></a>
+    <nav class="site-nav">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#about" class="hide-sm">About</a>
+      <a href="../resume.pdf" target="_blank" rel="noopener" class="hide-sm">Resume</a>
+      <a href="../index.html#contact" class="nav-cta">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap m-shadow">
+  <div class="p-hero">
+    <a class="back" href="../index.html#work">← All games</a><br>
+    <span class="chip accent">Personal project · Ongoing</span>
+    <h1>Shadow of the Past</h1>
+    <p class="tagline">A narrative-driven, single-player Unity game where the story is revealed through exploration and the environment.</p>
+    <dl class="meta-grid">
+      <div><dt>My role</dt><dd>Systems &amp; Gameplay Developer</dd></div>
+      <div><dt>Engine</dt><dd>Unity · C#</dd></div>
+      <div><dt>Scope</dt><dd>Level 1 prototype</dd></div>
+      <div><dt>Timeline</dt><dd>Nov 2025 – Present<br>Prototype done Feb 2026</dd></div>
+    </dl>
+  </div>
+
+  <div class="video">
+    <button class="yt m-shadow" data-id="UN_A0KecBDI" aria-label="Play Watch gameplay">
+      <img data-optional src="https://i.ytimg.com/vi/UN_A0KecBDI/maxresdefault.jpg" alt="">
+      <span class="play-btn"></span>
+      <span class="yt-label">▶ Watch gameplay</span>
+    </button>
+  </div>
+
+  <div class="p-body">
+    <nav class="toc" aria-label="On this page">
+      <a href="#overview">Overview</a>
+      <a href="#systems">Systems I built</a>
+      <a href="#design">Design decisions</a>
+      <a href="#takeaway">What I learned</a>
+    </nav>
+    <div class="p-content">
+      <section id="overview">
+        <h2>Overview</h2>
+        <p>Instead of linear dialogue, the story unfolds as the player explores: collecting memories and following environmental cues. The first level is a complete prototype that shows the full system design, narrative pacing and gameplay flow in a small space. I’m continuing to build it out.</p>
+      </section>
+      <section id="systems">
+        <h2>Systems I built</h2>
+        <ul>
+          <li><strong>Player controller:</strong> smooth movement, jump handling and ground detection, written in C#.</li>
+          <li><strong>Orb-based progression:</strong> the game tracks collected orbs, and the first orb opens a gate to the second part of the level.</li>
+          <li><strong>Event-driven UI:</strong> the UI listens for changes in the player’s state and updates on its own, with no manual refresh calls.</li>
+          <li><strong>Scene and state management:</strong> centralized handling of menus, gameplay and transitions, plus an audio manager for smooth changes between them.</li>
+          <li><strong>Feedback:</strong> audio, on-screen feedback and animation wired into interactions to support immersion.</li>
+        </ul>
+        <figure class="shot"><img data-optional src="../img/shadow-code.png" alt="C# code for trigger-based progression events"><figcaption class="caption">Trigger-based logic updates the game state, which then drives the UI feedback for player progression.</figcaption></figure>
+      </section>
+      <section id="design">
+        <h2>Design decisions</h2>
+        <p>I built each system as an independent component, so new levels, puzzles and progression conditions can be added without touching the core gameplay logic. Because this is a first-level prototype, I focused on getting a clear progression structure in place early. That makes it easy to expand later without the project getting messy.</p>
+      </section>
+      <section id="takeaway">
+        <h2>What I learned</h2>
+        <p>How to design gameplay systems that serve a story: keeping the technical progression structured while letting the narrative feel organic and player-driven.</p>
+      </section>
+    </div>
+  </div>
+
+  <a class="next" href="quarto.html">
+    <div><small>Next game</small><strong>Quarto</strong></div>
+    <span class="arrow">→</span>
+  </a>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap"><span>© <span data-year>2026</span> Judy Alqabbani</span><a href="mailto:judyqabbani@gmail.com">judyqabbani@gmail.com</a></div>
+</footer>
+
+<script src="../main.js"></script>
+</body>
+</html>

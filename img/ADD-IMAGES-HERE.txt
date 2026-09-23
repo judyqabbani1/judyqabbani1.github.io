@@ -1,0 +1,6 @@
+Drop images into this folder with these exact names and they'll show up on the site automatically.
+If a file isn't here yet, the site simply hides that spot, so nothing looks broken.
+
+mr-bladder-cover.jpg   -> cover image for the Mr. Bladder card on the home page (16:9, e.g. 1600x900)
+shadow-code.png        -> your code screenshot on the Shadow of the Past page (the one from your Notion)
+quarto-code.png        -> your win-condition code screenshot on the Quarto page (the one from your Notion)
