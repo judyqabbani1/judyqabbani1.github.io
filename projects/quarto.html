@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Quarto · Judy Alqabbani</title>
-  <meta name="description" content="A complete 2D digital version of the Quarto board game, focused on turn-based logic, rule enforcement and game state.">
+  <meta name="description" content="A complete 2D digital version of the Quarto board game in Java, with drag-and-drop pieces and full win detection. I wrote all of the code.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,700..900&family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
@@ -27,14 +27,14 @@
 <main class="wrap m-quarto">
   <div class="p-hero">
     <a class="back" href="../index.html#work">← All games</a><br>
-    <span class="chip accent">Personal project</span>
+    <span class="chip accent">Duo project · 2020</span>
     <h1>Quarto</h1>
-    <p class="tagline">A complete 2D digital version of the Quarto board game, focused on turn-based logic, rule enforcement and game state.</p>
+    <p class="tagline">A complete 2D digital version of the Quarto board game in Java, with drag-and-drop pieces and full win detection. I wrote all of the code.</p>
     <dl class="meta-grid">
-      <div><dt>My role</dt><dd>Developer</dd></div>
-      <div><dt>Language</dt><dd>Java · NetBeans</dd></div>
-      <div><dt>Type</dt><dd>2D turn-based strategy</dd></div>
-      <div><dt>Input</dt><dd>Mouse</dd></div>
+      <div><dt>My role</dt><dd>Programmer (all game code)</dd></div>
+      <div><dt>Tech</dt><dd>Java · JavaFX · CSS</dd></div>
+      <div><dt>Type</dt><dd>2-player local board game</dd></div>
+      <div><dt>Codebase</dt><dd>~1,500 lines</dd></div>
     </dl>
   </div>
 
@@ -49,33 +49,36 @@
   <div class="p-body">
     <nav class="toc" aria-label="On this page">
       <a href="#overview">Overview</a>
-      <a href="#systems">Systems I built</a>
-      <a href="#design">Design decisions</a>
-      <a href="#takeaway">What I learned</a>
+      <a href="#systems">What I built</a>
+      <a href="#reflection">Looking back</a>
     </nav>
     <div class="p-content">
       <section id="overview">
         <h2>Overview</h2>
-        <p>The goal was to recreate the whole game digitally, including the board, pieces, rules and every win condition, and to do it with a flexible system design. I didn’t add AI opponents or effects on purpose. The focus was getting the rules exactly right.</p>
+        <p>Quarto is played on a 4×4 board with 16 unique pieces. Each piece is a combination of four attributes: <strong>black or white, small or tall, square or circle, filled or hollow</strong>. You win by placing the fourth piece in a row, column or diagonal where all four pieces share at least one attribute.</p>
+        <p>This was a two-person project. I wrote all the game logic and code, and my partner handled the documentation and presentation.</p>
       </section>
       <section id="systems">
-        <h2>Systems I built</h2>
+        <h2>What I built</h2>
         <ul>
-          <li><strong>Turn-based game loop</strong> that keeps every action in order and blocks input from the player whose turn it isn’t.</li>
-          <li><strong>Board state tracking</strong> that knows where every piece is and whether a move is legal, and rejects illegal moves.</li>
-          <li><strong>Win-condition checks</strong> after every turn that test whether four pieces in a line share an attribute (shape, size, color or fill).</li>
-          <li><strong>Multiple rule variants</strong> supported by the same system.</li>
-          <li><strong>Mouse controls</strong> for selecting and placing pieces.</li>
+          <li><strong>Three screens:</strong> a home menu, the game board, and a How to Play screen that explains the rules.</li>
+          <li><strong>Drag-and-drop pieces:</strong> players drag a piece onto the board, the drop position is mapped to the correct cell, and the piece snaps into place.</li>
+          <li><strong>Piece encoding:</strong> each of the 16 pieces has a 4-letter code for its attributes, so checking for a shared attribute becomes a simple text check.</li>
+          <li><strong>Board state:</strong> every placement updates the board and all the winning lines that cell belongs to (4 rows, 4 columns, 2 diagonals).</li>
+          <li><strong>Win and draw detection:</strong> after every move, all 10 lines are checked against all 8 attribute values. The game announces which player won, or a draw once all 16 pieces are placed.</li>
+          <li><strong>Two-player turns</strong> tracked by mouse button (left click for Player 1, right click for Player 2), plus custom styling with JavaFX CSS.</li>
         </ul>
-        <figure class="shot"><img data-optional src="../img/quarto-code.png" alt="Java code for attribute-based win-condition checks"><figcaption class="caption">The win-condition check loops over the board and compares each piece’s attributes (shape, size, color, fill) to find a winning line.</figcaption></figure>
+        <figure class="code"><pre><code>// The 10 winning lines on the 4x4 board: 4 columns, 4 rows, 2 diagonals
+String[] Line1  = {A1, B1, C1, D1};
+String[] Line2  = {A2, B2, C2, D2};
+...
+String[] Line9  = {A1, B2, C3, D4};   // diagonal
+String[] Line10 = {A4, B3, C2, D1};   // anti-diagonal</code></pre><figcaption class="caption">From <code>Quarto2.java</code>: each placement updates every line that cell belongs to, then all 10 lines are checked.</figcaption></figure>
       </section>
-      <section id="design">
-        <h2>Design decisions</h2>
-        <p>Every rule is evaluated the same way every time, so there are no unclear outcomes. The game supports different rule sets and ways to play while still behaving predictably, with edge cases handled explicitly instead of left to chance.</p>
-      </section>
-      <section id="takeaway">
-        <h2>What I learned</h2>
-        <p>How much small structural decisions early on make later work easier or harder. Building Quarto taught me to think through edge cases, keep the code faithful to the rules, and turn game mechanics into reliable software.</p>
+      <section id="reflection">
+        <h2>Looking back</h2>
+        <p>I built Quarto early in my degree, and it’s one of the projects that taught me the most about structure. The win check works, but it’s a long chain of if-statements repeated for every line and attribute. Today I’d store each piece as four bits (one per attribute) and check a line with a couple of bitwise operations: a few lines of code instead of hundreds, and much easier to extend.</p>
+        <p>That lesson (design your data first and the logic gets simple) is something I carried straight into Shadow of the Past, where every system is small and separate.</p>
       </section>
     </div>
   </div>
