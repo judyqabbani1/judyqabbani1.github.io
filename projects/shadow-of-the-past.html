@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Shadow of the Past · Judy Alqabbani</title>
-  <meta name="description" content="A narrative-driven, single-player Unity game where the story is revealed through exploration and the environment.">
+  <meta name="description" content="A narrative-driven, third-person Unity game where the story is revealed through exploration. I designed and programmed the entire first level by myself.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,700..900&family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
@@ -27,14 +27,14 @@
 <main class="wrap m-shadow">
   <div class="p-hero">
     <a class="back" href="../index.html#work">← All games</a><br>
-    <span class="chip accent">Personal project · Ongoing</span>
+    <span class="chip accent">Solo project · Ongoing</span>
     <h1>Shadow of the Past</h1>
-    <p class="tagline">A narrative-driven, single-player Unity game where the story is revealed through exploration and the environment.</p>
+    <p class="tagline">A narrative-driven, third-person Unity game where the story is revealed through exploration. I designed and programmed the entire first level by myself.</p>
     <dl class="meta-grid">
-      <div><dt>My role</dt><dd>Systems &amp; Gameplay Developer</dd></div>
+      <div><dt>My role</dt><dd>Solo developer: all systems &amp; gameplay</dd></div>
       <div><dt>Engine</dt><dd>Unity · C#</dd></div>
-      <div><dt>Scope</dt><dd>Level 1 prototype</dd></div>
-      <div><dt>Timeline</dt><dd>Nov 2025 – Present<br>Prototype done Feb 2026</dd></div>
+      <div><dt>Codebase</dt><dd>30 C# scripts · ~1,800 lines</dd></div>
+      <div><dt>Timeline</dt><dd>Nov 2025 – Present<br>Level 1 done Feb 2026</dd></div>
     </dl>
   </div>
 
@@ -49,33 +49,87 @@
   <div class="p-body">
     <nav class="toc" aria-label="On this page">
       <a href="#overview">Overview</a>
-      <a href="#systems">Systems I built</a>
+      <a href="#player">Player controller</a>
+      <a href="#camera">Third-person camera</a>
+      <a href="#progression">Progression &amp; world</a>
+      <a href="#flow">Game flow, UI &amp; audio</a>
       <a href="#design">Design decisions</a>
       <a href="#takeaway">What I learned</a>
     </nav>
     <div class="p-content">
       <section id="overview">
         <h2>Overview</h2>
-        <p>Instead of linear dialogue, the story unfolds as the player explores: collecting memories and following environmental cues. The first level is a complete prototype that shows the full system design, narrative pacing and gameplay flow in a small space. I’m continuing to build it out.</p>
+        <p>You explore <em>Whispering Pines</em>, a forest level, collecting five memory orbs that slowly reveal the story. There’s no linear dialogue. The narrative comes out through the environment, short typed-out cutscenes, and what you discover as you go. Collecting the first memory opens a gate to the second half of the level, and collecting all five triggers the ending.</p>
+        <p>Level 1 is a complete, playable slice: splash screen, menu, intro cutscene, gameplay, ending cutscene and end screen. I’m continuing to build the next levels.</p>
       </section>
-      <section id="systems">
-        <h2>Systems I built</h2>
+      <section id="player">
+        <h2>Player controller</h2>
+        <p>A physics-based third-person controller built on Unity’s Rigidbody, tuned to feel responsive rather than floaty.</p>
         <ul>
-          <li><strong>Player controller:</strong> smooth movement, jump handling and ground detection, written in C#.</li>
-          <li><strong>Orb-based progression:</strong> the game tracks collected orbs, and the first orb opens a gate to the second part of the level.</li>
-          <li><strong>Event-driven UI:</strong> the UI listens for changes in the player’s state and updates on its own, with no manual refresh calls.</li>
-          <li><strong>Scene and state management:</strong> centralized handling of menus, gameplay and transitions, plus an audio manager for smooth changes between them.</li>
-          <li><strong>Feedback:</strong> audio, on-screen feedback and animation wired into interactions to support immersion.</li>
+          <li><strong>Camera-relative movement:</strong> input is projected onto the camera’s flattened forward and right vectors, so controls always match what the player sees.</li>
+          <li><strong>Double jump with coyote time:</strong> players can still jump for a split second after walking off a ledge, which makes platforming feel forgiving.</li>
+          <li><strong>Ground detection from contact normals:</strong> only surfaces facing upward count as ground, so walls and steep edges don’t reset jumps. A small downward “stick” force keeps the player stable on slopes.</li>
+          <li><strong>Character facing and animation:</strong> the model smoothly turns toward the direction of travel, and animator speed and jump parameters are driven from the Rigidbody’s velocity.</li>
         </ul>
-        <figure class="shot"><img data-optional src="../img/shadow-code.png" alt="C# code for trigger-based progression events"><figcaption class="caption">Trigger-based logic updates the game state, which then drives the UI feedback for player progression.</figcaption></figure>
+        <figure class="code"><pre><code>// Camera-relative movement
+Vector3 camForward = Vector3.Scale(cam.transform.forward, new Vector3(1, 0, 1)).normalized;
+Vector3 move = camForward * v + cam.transform.right * h;
+inputMove = move.sqrMagnitude &gt; 1f ? move.normalized : move;</code></pre><figcaption class="caption">From <code>PlayerController.cs</code>: movement is relative to where the camera is looking.</figcaption></figure>        <figure class="code"><pre><code>// Only upward-facing surfaces count as ground
+for (int i = 0; i &lt; col.contactCount; i++)
+{
+    ContactPoint cp = col.contacts[i];
+    if (Vector3.Dot(cp.normal, Vector3.up) &gt; groundNormalDot)
+    {
+        isGrounded = true;
+        lastGroundedTime = Time.time;   // coyote time
+        if (rb.velocity.y &lt;= 0.1f) jumpCount = 0;   // reset double jump
+        return;
+    }
+}</code></pre><figcaption class="caption">From <code>PlayerController.cs</code>: ground detection that also powers coyote time and double-jump resets.</figcaption></figure>
+      </section>
+      <section id="camera">
+        <h2>Third-person camera</h2>
+        <ul>
+          <li><strong>Orbit camera</strong> with mouse yaw and pitch, clamped so it can’t flip over or dip under the ground.</li>
+          <li><strong>Scroll-wheel zoom</strong> with min and max distance.</li>
+          <li><strong>Camera collision:</strong> a sphere cast from the player to the camera pulls the camera in front of trees and walls instead of clipping through them.</li>
+        </ul>
+        <figure class="code"><pre><code>// Keep the camera in front of walls
+Vector3 origin = target.position + Vector3.up * 1.5f;
+Vector3 dir = desiredPos - origin;
+float dist = dir.magnitude;
+dir /= dist;
+if (Physics.SphereCast(origin, collisionRadius, dir, out RaycastHit hit, dist, collisionMask,
+                       QueryTriggerInteraction.Ignore))
+    desiredPos = hit.point - dir * collisionRadius;</code></pre><figcaption class="caption">From <code>CameraOrbitController.cs</code>: keeping the camera out of walls.</figcaption></figure>
+      </section>
+      <section id="progression">
+        <h2>Progression &amp; world</h2>
+        <ul>
+          <li><strong>Memory orbs:</strong> idle bob and spin, plus a pulsing glow I made by animating the material’s emission and a point light in code (no post-processing bloom). On pickup they play particles and sound, update the UI and remove themselves cleanly.</li>
+          <li><strong>Game state:</strong> a single <code>GameState</code> tracks collected memories and notifies every gate when progress changes.</li>
+          <li><strong>Gates:</strong> each gate has its own unlock requirement and slides open with dust and sound. An invisible blocker stops players from jumping past the gate early, and it turns off once the gate is fully open.</li>
+          <li><strong>Level completion:</strong> after the fifth memory, the game waits a moment and then fades into the ending cutscene.</li>
+        </ul>
+      </section>
+      <section id="flow">
+        <h2>Game flow, UI &amp; audio</h2>
+        <ul>
+          <li><strong>Scene flow:</strong> splash → start menu → intro cutscene → level intro → gameplay → ending cutscene → end screen.</li>
+          <li><strong>Persistent screen fader</strong> that survives scene loads, fades to black, loads the next scene asynchronously and fades back in. It also resets time scale as a safety net.</li>
+          <li><strong>Typewriter cutscenes and titles</strong> using TextMeshPro, with timing that works even when the game is paused.</li>
+          <li><strong>Level intro overlay</strong> that disables player and camera control until the title card finishes.</li>
+          <li><strong>HUD:</strong> a memory counter (“Memories: 2 / 5”) and timed pop-up messages like “Memory Recovered” and “Path Unlocked.”</li>
+          <li><strong>Audio:</strong> jump and landing sounds (landings only play after real falls, not tiny bumps), looping footsteps that fade in and out with movement, and music that persists and fades between scenes.</li>
+        </ul>
       </section>
       <section id="design">
         <h2>Design decisions</h2>
-        <p>I built each system as an independent component, so new levels, puzzles and progression conditions can be added without touching the core gameplay logic. Because this is a first-level prototype, I focused on getting a clear progression structure in place early. That makes it easy to expand later without the project getting messy.</p>
+        <p>I kept each system in its own small component: the orb only knows how to be collected, the gate only knows its unlock rule, and the game state connects them. That makes new levels cheap to build, since adding a gate or orb is just placing it in the scene and setting a number in the Inspector. Tuning values like jump force, coyote time, camera limits and fade timing are all exposed in the Inspector, so I could adjust the feel without touching code.</p>
       </section>
       <section id="takeaway">
         <h2>What I learned</h2>
-        <p>How to design gameplay systems that serve a story: keeping the technical progression structured while letting the narrative feel organic and player-driven.</p>
+        <p>Game feel lives in small details: coyote time, filtering out landing sounds on tiny bumps, keeping the camera out of walls. Building every system myself also taught me how to structure a project so it can keep growing, which is exactly what I’m doing with the next levels.</p>
       </section>
     </div>
   </div>
